@@ -15,11 +15,26 @@ interface RobloxItem {
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 }
 
+interface RobloxProfile {
+  username: string;
+  displayName: string;
+  userId: number;
+  status: string;
+  joinDate: string;
+  friends: number;
+  followers: number;
+  following: number;
+  isOnline: boolean;
+  avatar: string;
+}
+
 const Index = () => {
   const [username, setUsername] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [inventory, setInventory] = useState<RobloxItem[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [profile, setProfile] = useState<RobloxProfile | null>(null);
+  const [view, setView] = useState<'profile' | 'inventory'>('profile');
   const { toast } = useToast();
 
   const mockInventory: RobloxItem[] = [
@@ -32,6 +47,19 @@ const Index = () => {
     { id: 7, name: 'Pixel Sneakers', type: 'Pants', price: 300, thumbnail: '👟', rarity: 'uncommon' },
     { id: 8, name: 'Rainbow Cape', type: 'Back Accessory', price: 900, thumbnail: '🌈', rarity: 'rare' },
   ];
+
+  const mockProfile: RobloxProfile = {
+    username: username || 'Player',
+    displayName: username || 'Player',
+    userId: Math.floor(Math.random() * 1000000000),
+    status: '🎮 Playing awesome games!',
+    joinDate: '15.03.2019',
+    friends: 247,
+    followers: 1523,
+    following: 189,
+    isOnline: Math.random() > 0.5,
+    avatar: '👤'
+  };
 
   const handleSearch = async () => {
     if (!username.trim()) {
@@ -46,11 +74,12 @@ const Index = () => {
     setIsSearching(true);
     
     setTimeout(() => {
+      setProfile(mockProfile);
       setInventory(mockInventory);
       setIsSearching(false);
       toast({
-        title: 'Инвентарь загружен!',
-        description: `Найдено ${mockInventory.length} предметов для ${username}`,
+        title: 'Профиль найден!',
+        description: `Загружены данные для ${username}`,
       });
     }, 1500);
   };
@@ -87,10 +116,10 @@ const Index = () => {
             </div>
           </div>
           <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-[#8B5CF6] via-[#D946EF] to-[#0EA5E9] bg-clip-text text-transparent">
-            Roblox Inventory Viewer
+            Roblox Profile Viewer
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Просмотр инвентаря любого игрока Roblox в удобном интерфейсе
+            Просмотр профиля и инвентаря любого игрока Roblox
           </p>
         </div>
 
@@ -126,7 +155,84 @@ const Index = () => {
           </Card>
         </div>
 
-        {inventory.length > 0 && (
+        {profile && (
+          <div className="mb-12 animate-scale-in">
+            <Card className="p-8 bg-white/5 backdrop-blur-xl border-white/10 shadow-2xl shadow-purple-500/10">
+              <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+                <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#D946EF] flex items-center justify-center text-6xl shadow-lg shadow-purple-500/30">
+                  {profile.avatar}
+                </div>
+                
+                <div className="flex-1 text-center md:text-left">
+                  <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
+                    <h2 className="text-3xl font-bold text-white">{profile.displayName}</h2>
+                    {profile.isOnline && (
+                      <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
+                        <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />
+                        Онлайн
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-gray-400 mb-1">@{profile.username}</p>
+                  <p className="text-gray-500 text-sm mb-4">ID: {profile.userId}</p>
+                  <p className="text-gray-300 mb-6">{profile.status}</p>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                      <Icon name="Users" size={20} className="text-blue-400 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-white">{profile.friends}</div>
+                      <div className="text-sm text-gray-400">Друзей</div>
+                    </div>
+                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                      <Icon name="UserPlus" size={20} className="text-purple-400 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-white">{profile.followers}</div>
+                      <div className="text-sm text-gray-400">Подписчиков</div>
+                    </div>
+                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                      <Icon name="UserCheck" size={20} className="text-pink-400 mx-auto mb-2" />
+                      <div className="text-2xl font-bold text-white">{profile.following}</div>
+                      <div className="text-sm text-gray-400">Подписок</div>
+                    </div>
+                    <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                      <Icon name="Calendar" size={20} className="text-amber-400 mx-auto mb-2" />
+                      <div className="text-sm font-bold text-white">{profile.joinDate}</div>
+                      <div className="text-sm text-gray-400">Регистрация</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <div className="flex justify-center gap-3 mt-8">
+              <Button
+                variant={view === 'profile' ? 'default' : 'outline'}
+                onClick={() => setView('profile')}
+                className={`transition-all ${
+                  view === 'profile'
+                    ? 'bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] shadow-lg shadow-purple-500/30'
+                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                }`}
+              >
+                <Icon name="User" size={18} className="mr-2" />
+                Профиль
+              </Button>
+              <Button
+                variant={view === 'inventory' ? 'default' : 'outline'}
+                onClick={() => setView('inventory')}
+                className={`transition-all ${
+                  view === 'inventory'
+                    ? 'bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] shadow-lg shadow-purple-500/30'
+                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                }`}
+              >
+                <Icon name="Package" size={18} className="mr-2" />
+                Инвентарь ({inventory.length})
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {profile && view === 'inventory' && inventory.length > 0 && (
           <div className="animate-scale-in">
             <div className="flex flex-wrap gap-3 mb-8 justify-center">
               {filters.map((filter) => (
@@ -197,7 +303,7 @@ const Index = () => {
           </div>
         )}
 
-        {inventory.length === 0 && !isSearching && (
+        {!profile && !isSearching && (
           <div className="text-center py-20 animate-fade-in">
             <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
               <Icon name="Search" size={48} className="text-purple-400" />
